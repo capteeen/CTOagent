@@ -6,6 +6,19 @@ to pump.fun open and holds state in memory. That rules out serverless
 
 Required env: `HELIUS_API_KEY`. Optional: see `.env.example`.
 
+## Vercel? Only for the frontend
+
+Vercel runs code per request and freezes it in between, so the live world's
+timers and websocket stop: prices show $0 and nothing progresses. Run the
+backend on Railway (below) and, if you want the Vercel URL, point the Vercel
+frontend at it: in Vercel → Settings → Environment Variables add
+
+```
+NEXT_PUBLIC_FEED_URL = https://<your-railway-domain>/api/feed
+```
+
+then redeploy. `/api/feed` sends `Access-Control-Allow-Origin: *`.
+
 ## Railway (easiest, ~$5/mo)
 
 1. Push this branch to GitHub (already done).

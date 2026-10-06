@@ -20,7 +20,7 @@ function Row({ label, value, sub, cls = '' }: { label: string; value: string; su
   );
 }
 
-const VERB: Record<string, string> = { flag: 'flagged', takeover: 'took over', buy: 'bought', sell: 'sold', abandon: 'abandoned', post: 'posted on', reply: 'replied on', claim: 'claimed fees on' };
+const VERB: Record<string, string> = { flag: 'spotted', takeover: 'took over', buy: 'bought', sell: 'sold', abandon: 'abandoned', post: 'posted on', reply: 'replied on', claim: 'claimed fees on' };
 
 /** BUILD-style two-up: platform stats on the left, recent activity with faces on the right. */
 export function StatsCards() {
@@ -31,12 +31,21 @@ export function StatsCards() {
   const paid = useTween(snap?.stats.paidToHolders ?? 0);
   const open = useMemo(() => snap?.tokens.filter((t) => t.status === 'taken_over').length ?? 0, [snap?.tokens]);
   const trades24 = useMemo(() => (snap?.actions ?? []).filter((a) => ['takeover', 'buy', 'sell', 'abandon'].includes(a.kind) && snap!.now - a.at < 86_400_000).length, [snap]);
-  // a mix: trades and claims first, at most two posts/replies, newest within each
+  // Agent moves first (trades, claims, at most two posts). When there aren't
+  // enough (live mode before the first takeover), fill with scanner findings,
+  // preferring ones backed by a real tx (dev launches and dev sells).
   const recent = useMemo(() => {
-    const all = (snap?.actions ?? []).filter((a) => a.kind !== 'flag');
+    const all = snap?.actions ?? [];
+    const moves = all.filter((a) => a.kind !== 'flag' && a.kind !== 'post' && a.kind !== 'reply').slice(0, 7);
     const social = all.filter((a) => a.kind === 'post' || a.kind === 'reply').slice(0, 2);
-    const rest = all.filter((a) => a.kind !== 'post' && a.kind !== 'reply').slice(0, 7);
-    return [...rest, ...social].sort((a, b) => b.at - a.at).slice(0, 7);
+    const picked = [...moves, ...social];
+    if (picked.length < 7) {
+      const flags = all.filter((a) => a.kind === 'flag');
+      const withTx = flags.filter((a) => a.txSig);
+      const rest = flags.filter((a) => !a.txSig);
+      picked.push(...[...withTx, ...rest].slice(0, 7 - picked.length));
+    }
+    return picked.sort((a, b) => b.at - a.at).slice(0, 7);
   }, [snap?.actions]);
   if (!snap) return null;
   return (
@@ -63,6 +72,7 @@ export function StatsCards() {
           <h2 className="text-[18px] font-bold">Recent activity</h2>
           <Link href="/activity" className="link text-[12px]">All →</Link>
         </div>
+        {!recent.length && <p className="py-8 text-center font-mono text-[12px] text-muted">Hawk is scanning. First findings appear within a minute.</p>}
         <ul className="divide-y divide-line">
           {recent.map((a) => {
             const c = whoDid(a.kind);
