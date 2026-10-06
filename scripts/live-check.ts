@@ -36,8 +36,9 @@ const fakeFetch: typeof fetch = async (url) => {
 
 let sock!: SocketLike & { sent: string[] };
 const factory = () => {
-  sock = { sent: [], send: (d) => sock.sent.push(d), close: () => {}, onopen: null, onmessage: null, onclose: null, onerror: null };
-  setTimeout(() => sock.onopen?.({}), 0);
+  let opened = false;
+  sock = { sent: [], send: (d) => { if (!opened) throw new Error('Sent before connected.'); sock.sent.push(d); }, close: () => {}, onopen: null, onmessage: null, onclose: null, onerror: null };
+  setTimeout(() => { opened = true; sock.onopen?.({}); }, 0);
   return sock;
 };
 const emit = (m: unknown) => sock.onmessage?.({ data: JSON.stringify(m) });
