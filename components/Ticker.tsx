@@ -14,7 +14,8 @@ export function Ticker() {
       .sort((a, b) => (b.takeoverAt ? 1 : 0) - (a.takeoverAt ? 1 : 0) || b.vol24h - a.vol24h)
       .slice(0, 18)
       .map((t) => {
-        const d = t.takeoverPrice ? (t.price / t.takeoverPrice - 1) * 100 : t.peakPrice > 0 ? (t.price / t.peakPrice - 1) * 100 : 0;
+        // since takeover for our coins; otherwise the market's 24h change (live) or drawdown from peak (sim)
+        const d = t.takeoverPrice ? (t.price / t.takeoverPrice - 1) * 100 : t.change24h ?? (t.peakPrice > 0 ? (t.price / t.peakPrice - 1) * 100 : 0);
         return { ca: t.ca, ticker: t.ticker, mcap: t.mcap, d, taken: !!t.takeoverAt };
       });
     return list;

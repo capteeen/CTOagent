@@ -68,6 +68,8 @@ export interface Token {
   // ---- extras ----
   price: number;
   peakPrice: number;
+  /** Live mode: market 24h price change in %, from DexScreener. */
+  change24h?: number;
   launchedAt: number;
   lastSocialAt: number;
   volAtTakeover?: number;

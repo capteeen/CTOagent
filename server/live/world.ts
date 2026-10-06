@@ -399,6 +399,7 @@ export class LiveWorld {
       if (hd.lastTradeAt === hd.firstSeen) hd.lastTradeAt = t.launchedAt;
     }
     if (p.info?.imageUrl) t.image = p.info.imageUrl;
+    if (typeof p.priceChange?.h24 === 'number') t.change24h = p.priceChange.h24;
     const price = parseFloat(p.priceUsd ?? '0');
     if (price > 0) {
       t.price = price;
