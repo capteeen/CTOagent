@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: 255 255 255;
+  --surface: 247 247 248;
+  --line: 229 229 231;
+  --fg: 10 10 10;
+  --muted: 107 107 112;
+  --accent: 47 107 255;
+  --loss: 229 72 77;
+  --gain: 31 157 85;
+  color-scheme: light;
+}
+.dark {
+  --bg: 10 10 11;
+  --surface: 20 20 22;
+  --line: 38 38 42;
+  --fg: 237 237 239;
+  --muted: 142 142 150;
+  --accent: 84 130 255;
+  --loss: 240 98 102;
+  --gain: 46 184 104;
+  color-scheme: dark;
+}
+
+html, body { background: rgb(var(--bg)); color: rgb(var(--fg)); }
+body { font-feature-settings: 'cv11', 'ss01'; -webkit-font-smoothing: antialiased; }
+* { border-color: rgb(var(--line)); }
+.num { font-variant-numeric: tabular-nums; }
+h1, h2, h3 { letter-spacing: -0.02em; }
+
+@layer components {
+  .card { @apply rounded-lg border border-line bg-surface; }
+  .btn { @apply inline-flex h-8 items-center justify-center gap-1.5 rounded-md border border-line bg-bg px-3 text-[13px] font-medium hover:bg-surface transition-colors; }
+  .btn-primary { @apply inline-flex h-8 items-center justify-center gap-1.5 rounded-md bg-accent px-3 text-[13px] font-medium text-white hover:opacity-90 transition-opacity; }
+  .label { @apply text-[11px] font-medium uppercase tracking-wider text-muted; }
+  .mono { @apply font-mono text-[12px]; }
+  .link { @apply text-accent hover:underline underline-offset-2; }
+  .tab { @apply h-8 px-3 text-[13px] text-muted border-b-2 border-transparent hover:text-fg; }
+  .tab-on { @apply text-fg border-fg; }
+  .numbtn { @apply num rounded px-1 -mx-1 hover:bg-accent/10 hover:text-accent cursor-pointer text-left; }
+}
+
+.flash-up { animation: flashup 900ms ease-out; }
+.flash-down { animation: flashdown 900ms ease-out; }
+@keyframes flashup { from { color: rgb(var(--accent)); } }
+@keyframes flashdown { from { color: rgb(var(--loss)); } }
+
+.sweep-bar { animation: sweep linear forwards; }
+@keyframes sweep { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-slidein, .flash-up, .flash-down, .sweep-bar { animation: none !important; }
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgb(var(--line)); border-radius: 8px; border: 2px solid rgb(var(--bg)); }
