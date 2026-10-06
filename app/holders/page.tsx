@@ -62,7 +62,7 @@ export default function HoldersPage() {
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[380px_1fr]">
-        <section className="card h-fit bg-bg">
+        <section className="card h-fit">
           <div className="border-b border-line px-4 py-2"><h2 className="text-[14px] font-semibold">Your claimable share</h2></div>
           {!me ? (
             <div className="p-4">
@@ -99,7 +99,7 @@ export default function HoldersPage() {
           )}
         </section>
 
-        <section className="card overflow-hidden bg-bg">
+        <section className="card overflow-hidden">
           <div className="flex items-center justify-between border-b border-line px-4 py-2">
             <h2 className="text-[14px] font-semibold">Fee distribution history</h2>
             <span className="font-mono text-[11px] text-muted">every 6h · 70% of claims + realized PnL</span>

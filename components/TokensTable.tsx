@@ -305,7 +305,7 @@ function DesktopTable({ table, rows, onHover }: { table: ReturnType<typeof useRe
   const minW = headers.reduce((s, h) => s + h.getSize(), 0) + 24;
 
   return (
-    <div ref={ref} className="relative h-[calc(100vh-186px)] min-h-[420px] overflow-auto" onMouseEnter={() => onHover(true)} onMouseLeave={() => onHover(false)}>
+    <div ref={ref} className="relative h-[calc(100vh-240px)] min-h-[420px] overflow-auto" onMouseEnter={() => onHover(true)} onMouseLeave={() => onHover(false)}>
       <div style={{ minWidth: minW }}>
         <div className="sticky top-0 z-10 grid border-b border-line bg-bg px-3" style={{ gridTemplateColumns: tpl }} role="row">
           {headers.map((h) => {

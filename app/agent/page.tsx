@@ -72,7 +72,7 @@ export default function AgentPage() {
       <HQ className="mt-4 h-[300px] md:h-[380px]" />
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <section className="card bg-bg">
+        <section className="card">
           <div className="border-b border-line px-4 py-2"><h2 className="text-[14px] font-semibold">Scanner rules</h2></div>
           <ol className="divide-y divide-line">
             {scannerRules.map((s, i) => (
@@ -80,7 +80,7 @@ export default function AgentPage() {
             ))}
           </ol>
         </section>
-        <section className="card bg-bg">
+        <section className="card">
           <div className="border-b border-line px-4 py-2"><h2 className="text-[14px] font-semibold">Current strategy parameters</h2></div>
           <dl className="divide-y divide-line">
             {strategy.map(([k, v]) => (
@@ -90,7 +90,7 @@ export default function AgentPage() {
         </section>
       </div>
 
-      <section className="card mt-4 overflow-hidden bg-bg">
+      <section className="card mt-4 overflow-hidden">
         <div className="border-b border-line px-4 py-2"><h2 className="text-[14px] font-semibold">Wallet activity</h2></div>
         <ActionFeed actions={trades} limit={60} />
       </section>

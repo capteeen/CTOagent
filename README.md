@@ -6,15 +6,31 @@ wallet, spins up a new X account, posts updates, and keeps the chart alive. It
 earns a cut of the volume it revives. Every action is on-chain and explained in
 one line.
 
-This repo is **Phase 1**: the full UI running on an in-browser mock simulator.
-No backend, no keys, no chain writes.
+Two data modes, same UI:
+
+- **Live (default):** real Solana tokens. Discovery, price, market cap and
+  volume from DexScreener; pump.fun launches, creator wallets and dev sells
+  (with real tx signatures) from the PumpPortal websocket; optional holder
+  counts from Helius. The agent applies its rules on **paper** until a funded
+  keypair exists, so its trades are tagged PAPER and have no tx link, and no
+  X posts are made. The UI never claims a transaction it can't link.
+- **Simulator:** 200 generated coins and a generated agent at 60× speed, for
+  demos and offline work. `NEXT_PUBLIC_DATA_SOURCE=sim`.
 
 ```bash
 npm install
-npm run dev          # http://localhost:3000
+npm run dev          # http://localhost:3000  (live mode; needs outbound HTTPS)
+NEXT_PUBLIC_DATA_SOURCE=sim npm run dev        # simulator
 npm run build && npm start
-npx tsx scripts/sim-check.ts   # headless sanity run of the simulator
+npx tsx scripts/sim-check.ts    # headless run of the simulator
+npx tsx scripts/live-check.ts   # offline run of the live world against fixtures
+curl localhost:3000/api/snapshot | head -c 500   # live world state
 ```
+
+Live mode needs a long-lived Node process (`next start`, Docker, a VPS): the
+world lives in memory and keeps a websocket open. On serverless hosts run the
+world elsewhere and point `NEXT_PUBLIC_FEED_URL` at it. State is not persisted
+across restarts yet.
 
 Node 18.18+ (tested on 22). `.npmrc` sets `legacy-peer-deps` so the Solana
 wallet adapter does not drag in React Native.
@@ -105,7 +121,38 @@ fees + realized PnL) split 70% to CTO holders, 30% to vault, distributed every 6
 All of these live in `DEFAULT_RULES` in `lib/score.ts`; `/agent` and `/how`
 render from the same object.
 
-## Swapping the simulator for Phase 2
+## Live mode internals
+
+```
+server/live/dexscreener.ts   REST client (profiles, boosts, token pairs)
+server/live/pumpportal.ts    websocket client with reconnect + subscriptions
+server/live/helius.ts        optional holder counts (DAS getTokenAccounts)
+server/live/world.ts         LiveWorld: discovery, scoring, paper agent, snapshot()
+server/live/index.ts         process singleton
+app/api/feed/route.ts        SSE stream of snapshots (every 4s)
+app/api/snapshot/route.ts    one-shot JSON
+```
+
+Loop: every 90s pull DexScreener's latest profiles/boosts (Solana only) and
+the `LIVE_WATCH` list; every 20s refresh all tracked tokens in batches of 30
+(well under DexScreener's 300 rpm); PumpPortal pushes launches and trades in
+real time; every 5s the paper agent ticks. The tracked set is capped at
+`LIVE_MAX_TOKENS` (300), evicting quiet scanning tokens first.
+
+Signals in live mode, and how they differ from the spec:
+
+| Signal | Source | Note |
+| --- | --- | --- |
+| Dev sold % | PumpPortal trades by the creator wallet | only for coins whose launch was seen live (or dev wallet known); otherwise 0 and the coin is ineligible |
+| Hours silent | time since last on-chain trade | no social data source yet |
+| Volume drop | 24h volume vs the best 24h pace observed (h24, h6×4, h1×24) | |
+| Holders | Helius DAS | without `HELIUS_API_KEY` the signal is 0 and the ≥150 rule can't be checked (blocks takeovers unless `LIVE_RELAX_HOLDERS=1`) |
+| Bundle / honeypot | not checked yet | TODO in `lib/phase2/scanner.ts` |
+
+The `Snapshot.source` block carries these caveats and any provider errors; the
+banner at the top of every page shows them.
+
+## Going from paper to real
 
 The UI only ever reads `Snapshot`s from a `DataSource` (`lib/source.ts`):
 
@@ -150,8 +197,13 @@ interface DataSource {
 
 | Var | Default | Purpose |
 | --- | --- | --- |
-| `NEXT_PUBLIC_DATA_SOURCE` | `sim` | `live` switches to `LiveSource` |
+| `NEXT_PUBLIC_DATA_SOURCE` | `live` | `sim` switches both server and client to the simulator |
 | `NEXT_PUBLIC_FEED_URL` | `/api/feed` | SSE feed for `LiveSource` |
+| `HELIUS_API_KEY` | — | enables holder counts |
+| `LIVE_WATCH` | — | comma-separated CAs to always track |
+| `LIVE_PAPER_VAULT_SOL` | `10` | paper vault size |
+| `LIVE_RELAX_HOLDERS` | — | `1` lets takeovers proceed without holder counts |
+| `LIVE_MAX_TOKENS` | `300` | cap on tracked tokens |
 | `NEXT_PUBLIC_RPC_URL` | mainnet-beta | Wallet adapter connection |
 | `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` | Absolute URLs for OG images |
 

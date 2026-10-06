@@ -30,7 +30,7 @@ const NOUN = ['Frog', 'Cat', 'Dog', 'Hamster', 'Penguin', 'Goat', 'Otter', 'Duck
 const SUFFIX = ['', '', '', ' Inu', ' Wif Hat', ' Coin', ' on Sol', ' 2.0', ' Classic', ' Army'];
 const HUES = [212, 0, 145, 32, 270, 190, 330, 55, 100, 230];
 
-function coinImage(ticker: string, hue: number, face: number): string {
+export function coinImage(ticker: string, hue: number, face: number): string {
   const eyes = ['M22 26h4M38 26h4', 'M21 24a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M37 24a3 3 0 1 0 6 0a3 3 0 1 0 -6 0', 'M20 27l6-3M38 24l6 3'][face % 3];
   const mouth = ['M24 40q8 6 16 0', 'M24 42h16', 'M24 44q8 -6 16 0'][(face >> 2) % 3];
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="hsl(${hue} 70% 92%)"/><circle cx="32" cy="32" r="22" fill="hsl(${hue} 65% 55%)"/><path d="${eyes}" stroke="#0A0A0A" stroke-width="3" stroke-linecap="round" fill="#0A0A0A"/><path d="${mouth}" stroke="#0A0A0A" stroke-width="3" stroke-linecap="round" fill="none"/><text x="32" y="60" font-family="monospace" font-size="9" font-weight="700" text-anchor="middle" fill="hsl(${hue} 60% 30%)">${ticker.slice(0, 5)}</text></svg>`;
@@ -637,6 +637,7 @@ export class World {
     return {
       fresh,
       snap: {
+        source: { kind: 'sim', paper: true, notes: ['Mock simulator. Coins, trades and posts are generated.'], updatedAt: Date.now(), errors: [] },
         now: this.now,
         sweep: this.sweep,
         tokens: this.tokens.map((t) => ({ ...t, position: { ...t.position } })),

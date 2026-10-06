@@ -10,6 +10,8 @@ const config: Config = {
       colors: {
         bg: v('bg'),
         surface: v('surface'),
+        surface2: v('surface2'),
+        onaccent: v('on-accent'),
         line: v('line'),
         fg: v('fg'),
         muted: v('muted'),
@@ -21,7 +23,7 @@ const config: Config = {
         sans: ['"Inter Variable"', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono Variable"', '"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
-      borderRadius: { DEFAULT: '6px', md: '6px', lg: '8px' },
+      borderRadius: { DEFAULT: '8px', md: '8px', lg: '12px', xl: '16px' },
       keyframes: {
         slidein: {
           from: { transform: 'translateY(-8px)', opacity: '0', backgroundColor: 'rgb(var(--accent) / 0.08)' },

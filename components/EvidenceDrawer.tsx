@@ -68,7 +68,7 @@ function Breakdown({ t, field, now }: { t: Token; field: EvidenceTarget['field']
     case 'dev':
       return (
         <>
-          <Line k="Dev wallet" v={<a className="link" href={accountUrl(t.devWallet)} target="_blank" rel="noreferrer">{short(t.devWallet, 6)}↗</a>} />
+          <Line k="Dev wallet" v={t.devWallet ? <a className="link" href={accountUrl(t.devWallet)} target="_blank" rel="noreferrer">{short(t.devWallet, 6)}↗</a> : 'unknown'} />
           <Line k="Sold of initial holdings" v={`${t.devSoldPct.toFixed(1)}%`} strong />
           <Line k="Score contribution" v={`${p.dev.toFixed(1)} / 35`} />
         </>
@@ -99,8 +99,8 @@ function Breakdown({ t, field, now }: { t: Token; field: EvidenceTarget['field']
     case 'holders':
       return (
         <>
-          <Line k="Holders" v={t.holders} strong />
-          <Line k="Peak holders" v={t.holdersPeak} />
+          <Line k="Holders" v={t.holdersPeak ? t.holders : 'unknown'} strong />
+          <Line k="Peak holders" v={t.holdersPeak || '—'} />
           <Line k="Down from peak" v={`-${p.holdersDropPct.toFixed(1)}%`} />
         </>
       );

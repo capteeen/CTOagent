@@ -84,9 +84,13 @@ export function TokenDetail({ ca }: { ca: string }) {
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px]">
               <span className="flex items-center gap-1 text-muted">CA <CopyText text={t.ca} display={short(t.ca, 6)} /></span>
-              <a href={accountUrl(t.devWallet)} target="_blank" rel="noreferrer" className="text-muted hover:text-fg">
-                dev <span className="font-mono text-[11px] text-loss">{short(t.devWallet)}</span>↗
-              </a>
+              {t.devWallet ? (
+                <a href={accountUrl(t.devWallet)} target="_blank" rel="noreferrer" className="text-muted hover:text-fg">
+                  dev <span className="font-mono text-[11px] text-loss">{short(t.devWallet)}</span>↗
+                </a>
+              ) : (
+                <span className="font-mono text-[11px] text-muted">dev unknown</span>
+              )}
               {t.xHandle ? (
                 <a href={xUrl(t.xHandle)} target="_blank" rel="noreferrer" className="link font-mono text-[11px]">@{t.xHandle}↗</a>
               ) : (
@@ -102,19 +106,19 @@ export function TokenDetail({ ca }: { ca: string }) {
       </div>
 
       {/* metrics */}
-      <div className="card mt-4 grid grid-cols-2 divide-line bg-bg sm:grid-cols-4 lg:grid-cols-8 lg:divide-x">
+      <div className="card mt-4 grid grid-cols-2 divide-line sm:grid-cols-4 lg:grid-cols-8 lg:divide-x">
         <Metric t={t} label="Mcap" value={Math.round(t.mcap)}>{usd(t.mcap)}{mD != null && <span className={`ml-1.5 text-[11px] ${mD >= 0 ? 'text-accent' : 'text-loss'}`}>{pct(mD, 0, true)}</span>}</Metric>
         <Metric t={t} label="Death score" field="score" value={t.deathScore}><DeathBar score={t.deathScore} /></Metric>
         <Metric t={t} label="Dev sold" field="dev" value={Math.round(t.devSoldPct)} cls={t.devSoldPct >= 80 ? 'text-loss' : ''}>{pct(t.devSoldPct)}</Metric>
         <Metric t={t} label="Silent" field="social" value={Math.round(t.hoursSilent * 10)}>{hours(t.hoursSilent)}</Metric>
         <Metric t={t} label="Vol 24h" field="vol24h" value={Math.round(t.vol24h)}>{usd(t.vol24h)}</Metric>
         <Metric t={t} label="Vol Δ CTO" field="volDelta" value={Math.round(volD ?? 0)} cls={volD == null ? 'text-muted' : volD >= 0 ? 'text-accent' : 'text-loss'}>{volD == null ? '—' : pct(volD, 0, true)}</Metric>
-        <Metric t={t} label="Holders" field="holders" value={t.holders}>{t.holders.toLocaleString('en-US')}</Metric>
+        <Metric t={t} label="Holders" field="holders" value={t.holders}>{t.holdersPeak ? t.holders.toLocaleString('en-US') : <span className="text-muted">—</span>}</Metric>
         <Metric t={t} label="Takeover" value={t.takeoverAt ?? 0}>{t.takeoverAt ? <span className="font-mono text-[13px]">{stamp(t.takeoverAt)}</span> : <span className="text-muted">—</span>}</Metric>
       </div>
 
       {/* chart */}
-      <div className="card mt-4 overflow-hidden bg-bg">
+      <div className="card mt-4 overflow-hidden">
         <div className="flex items-center justify-between border-b border-line px-3 py-2">
           <span className="label">Market cap · {t.takeoverAt ? 'blue line marks the takeover' : 'no takeover yet'}</span>
           <span className="font-mono text-[11px] text-muted">reconstructed candles (sim)</span>
@@ -124,7 +128,7 @@ export function TokenDetail({ ca }: { ca: string }) {
 
       {/* panels */}
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1.35fr_1fr_1fr]">
-        <section className="card flex max-h-[720px] flex-col overflow-hidden bg-bg">
+        <section className="card flex max-h-[720px] flex-col overflow-hidden">
           <div className="flex items-center justify-between border-b border-line px-3 py-2">
             <h2 className="text-[14px] font-semibold">1 · Timeline</h2>
             <div className="flex gap-1">
@@ -138,7 +142,7 @@ export function TokenDetail({ ca }: { ca: string }) {
           </div>
         </section>
 
-        <section className="card flex max-h-[720px] flex-col overflow-hidden bg-bg">
+        <section className="card flex max-h-[720px] flex-col overflow-hidden">
           <div className="border-b border-line px-3 py-2"><h2 className="text-[14px] font-semibold">2 · Takeover wallet</h2></div>
           {t.takeoverAt ? (
             <>
@@ -176,7 +180,7 @@ export function TokenDetail({ ca }: { ca: string }) {
           )}
         </section>
 
-        <section className="card flex max-h-[720px] flex-col overflow-hidden bg-bg">
+        <section className="card flex max-h-[720px] flex-col overflow-hidden">
           <div className="flex items-center justify-between border-b border-line px-3 py-2">
             <h2 className="text-[14px] font-semibold">3 · Posts</h2>
             {t.xHandle && <a href={xUrl(t.xHandle)} target="_blank" rel="noreferrer" className="link font-mono text-[11px]">@{t.xHandle}↗</a>}

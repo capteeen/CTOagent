@@ -1,7 +1,7 @@
 // Every agent action links somewhere verifiable. In Phase 1 the signatures are
 // simulated, so the explorer will 404; the UI marks them with a SIM badge.
 
-export const IS_SIM = process.env.NEXT_PUBLIC_DATA_SOURCE !== 'live';
+export const IS_SIM = process.env.NEXT_PUBLIC_DATA_SOURCE === 'sim';
 
 export const CTO_CA = 'CTo7xAgentDeadCoinsRevived1111111111pump';
 export const AGENT_WALLET = 'CTOvau1tKx9rAgent7Hq2s5Lw3NnDe8YpRz4Fb6Mc';

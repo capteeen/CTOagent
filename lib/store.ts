@@ -42,3 +42,4 @@ export const useStore = create<State>((set, get) => ({
 
 export const useSnap = () => useStore((s) => s.snap);
 export const useNow = () => useStore((s) => s.snap?.now ?? 0);
+export const useSource = () => useStore((s) => s.snap?.source);

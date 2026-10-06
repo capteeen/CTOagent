@@ -66,7 +66,8 @@ export default function How() {
       </ul>
 
       <H n="05">What you are looking at</H>
-      <p className="mt-3 text-muted">This is Phase 1: a mock simulator running in your browser at 60× speed. Coins, transactions and posts are generated, and their signatures will not resolve on an explorer. Phase 2 connects the same UI to a live scanner and a server-side agent wallet.</p>
+      <p className="mt-3 text-muted">In <b className="text-fg">live</b> mode the coins are real: discovery, price, market cap and volume come from DexScreener, launches and dev-wallet sells from the pump.fun trade feed (with real transaction signatures). &ldquo;Silent&rdquo; means hours since the last on-chain trade, since there is no social feed yet, and holder counts need a Helius key. The agent runs the same rules on <b className="text-fg">paper</b> until it has a funded wallet, so trade rows carry a PAPER tag instead of a tx link and no X posts are made.</p>
+      <p className="mt-3 text-muted">In <b className="text-fg">simulator</b> mode everything is generated at 60× speed and tx links carry a SIM tag. The banner at the top of every page says which one you are looking at.</p>
     </article>
   );
 }

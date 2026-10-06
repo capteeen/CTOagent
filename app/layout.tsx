@@ -6,6 +6,8 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { SimProvider } from '@/components/SimProvider';
 import { EvidenceDrawer } from '@/components/EvidenceDrawer';
+import { MobileNav, Sidebar } from '@/components/Sidebar';
+import { SourceBanner } from '@/components/SourceBanner';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
@@ -13,9 +15,9 @@ export const metadata: Metadata = {
   description: 'CTO detects dead coins, buys the dip with its own Solana wallet, runs a new X account and keeps the chart alive. Every move on-chain and explained.',
 };
 
-export const viewport: Viewport = { themeColor: '#FFFFFF' };
+export const viewport: Viewport = { themeColor: '#0B0B0D' };
 
-const themeScript = `try{if(localStorage.getItem('cto-theme')==='dark')document.documentElement.classList.add('dark')}catch(e){}`;
+const themeScript = `try{document.documentElement.classList.add(localStorage.getItem('cto-theme')==='light'?'light':'dark')}catch(e){document.documentElement.classList.add('dark')}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -26,8 +28,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen font-sans text-[13px] antialiased">
         <SimProvider>
           <Header />
-          <main className="mx-auto w-full max-w-[1600px] px-4 md:px-6">{children}</main>
-          <Footer />
+          <MobileNav />
+          <div className="flex">
+            <Sidebar />
+            <div className="min-w-0 flex-1">
+              <main className="mx-auto w-full max-w-[1500px] px-4 pt-4 md:px-6">
+                <SourceBanner />
+                {children}
+              </main>
+              <Footer />
+            </div>
+          </div>
           <EvidenceDrawer />
         </SimProvider>
       </body>

@@ -28,20 +28,20 @@ export function readPalette(): Palette {
     accent: rgb('accent'),
     loss: rgb('loss'),
     gain: rgb('gain'),
-    dark: document.documentElement.classList.contains('dark'),
+    dark: !document.documentElement.classList.contains('light'),
   };
 }
 
 export const LIGHT: Palette = {
-  bg: '#ffffff',
-  surface: '#f7f7f8',
-  line: '#e5e5e7',
-  fg: '#0a0a0a',
-  muted: '#6b6b70',
-  accent: '#2f6bff',
-  loss: '#e5484d',
-  gain: '#1f9d55',
-  dark: false,
+  bg: '#0b0b0d',
+  surface: '#161619',
+  line: '#28282e',
+  fg: '#f5f5f7',
+  muted: '#9a9aa3',
+  accent: '#ffc700',
+  loss: '#f0505a',
+  gain: '#22c55e',
+  dark: true,
 };
 
 export const SKIN = ['#f1c9a5', '#d9a577', '#8d5a3b', '#c68642', '#ffdbac'];

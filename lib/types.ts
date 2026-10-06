@@ -25,6 +25,8 @@ export interface Action {
   tags: Evidence[];
   /** USD price per token at execution, for trades. */
   price?: number;
+  /** Live mode: the agent simulated this trade on paper; there is no tx. */
+  paper?: boolean;
 }
 
 export interface Position {
@@ -142,7 +144,19 @@ export interface Distribution {
   txSig: string;
 }
 
+export interface SourceInfo {
+  kind: 'sim' | 'live';
+  /** true when trades are paper (no keys configured) */
+  paper: boolean;
+  /** plain-English caveats shown in the UI */
+  notes: string[];
+  updatedAt: number;
+  /** data providers that are currently failing */
+  errors: string[];
+}
+
 export interface Snapshot {
+  source: SourceInfo;
   now: number;
   sweep: number;
   tokens: Token[];

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Action, Status } from '@/lib/types';
 import { IS_SIM, txUrl } from '@/lib/links';
+import { useStore } from '@/lib/store';
 import { short } from '@/lib/format';
 
 export const STATUS_LABEL: Record<Status, string> = {
@@ -15,17 +16,17 @@ export const STATUS_LABEL: Record<Status, string> = {
 };
 
 const STATUS_STYLE: Record<Status, string> = {
-  scanning: 'text-muted border-line',
-  dying: 'text-loss/80 border-loss/30',
-  dead: 'text-loss border-loss/40 bg-loss/5',
-  taken_over: 'text-accent border-accent/40 bg-accent/5',
-  revived: 'text-gain border-gain/40 bg-gain/5',
+  scanning: 'text-muted border-line bg-surface2',
+  dying: 'text-loss border-loss/40 bg-loss/10',
+  dead: 'text-onaccent border-loss bg-loss',
+  taken_over: 'text-onaccent border-accent bg-accent',
+  revived: 'text-onaccent border-gain bg-gain',
   abandoned: 'text-muted border-line bg-surface line-through decoration-muted/40',
 };
 
 export function StatusBadge({ status }: { status: Status }) {
   return (
-    <span className={`inline-flex h-5 items-center gap-1 whitespace-nowrap rounded border px-1.5 text-[11px] font-medium ${STATUS_STYLE[status]}`}>
+    <span className={`inline-flex h-5 items-center gap-1 whitespace-nowrap rounded-md border px-1.5 text-[11px] font-bold ${STATUS_STYLE[status]}`}>
       {status === 'scanning' && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-muted" />}
       {STATUS_LABEL[status]}
     </span>
@@ -113,11 +114,14 @@ export function useTween(target: number, ms = 800) {
 }
 
 export function SimTag() {
-  if (!IS_SIM) return null;
-  return <span className="ml-1 rounded border border-line px-1 font-mono text-[9px] uppercase text-muted" title="Simulated signature — Phase 1 has no chain writes">sim</span>;
+  const sim = useStore((s) => s.snap?.source.kind !== 'live');
+  if (!sim && !IS_SIM) return null;
+  return <span className="ml-1 rounded border border-line px-1 font-mono text-[9px] uppercase text-muted" title="Simulated signature — the simulator has no chain writes">sim</span>;
 }
 
-export function ProofLink({ a }: { a: Pick<Action, 'txSig' | 'postUrl'> }) {
+export function ProofLink({ a }: { a: Pick<Action, 'txSig' | 'postUrl' | 'paper'> }) {
+  if (a.paper)
+    return <span className="whitespace-nowrap rounded border border-accent/40 bg-accent/5 px-1 font-mono text-[10px] uppercase text-accent" title="Paper trade: the agent applied its rules without a funded wallet, so there is no transaction">paper</span>;
   if (a.txSig)
     return (
       <a href={txUrl(a.txSig)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="link whitespace-nowrap font-mono text-[11px]">

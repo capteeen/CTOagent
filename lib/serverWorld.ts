@@ -1,6 +1,7 @@
 import 'server-only';
 import { seedWorld } from './sim';
 import type { Snapshot, Token } from './types';
+import { getLiveWorld, LIVE } from '@/server/live';
 
 // The simulator is deterministic for a given seed, so the server can rebuild
 // the same coins (same CAs) the browser sees. Used for metadata + OG images.
@@ -8,6 +9,7 @@ import type { Snapshot, Token } from './types';
 let cache: { snap: Snapshot; at: number } | null = null;
 
 export function serverSnapshot(): Snapshot {
+  if (LIVE) return getLiveWorld().snapshot().snap;
   if (!cache || Date.now() - cache.at > 10 * 60_000) cache = { snap: seedWorld(Date.now()).snapshot().snap, at: Date.now() };
   return cache.snap;
 }
