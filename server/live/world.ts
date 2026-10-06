@@ -332,8 +332,13 @@ export class LiveWorld {
   async refreshHolders() {
     if (!this.helius) return;
     const now = this.now();
+    // Budget: ~20 lookups per pass. Priority: open positions, then anything
+    // that has started dying (score ≥ 25 or the dev has sold), then the
+    // highest scores among the rest. Re-check every 10 min.
+    const stale = (t: Token) => now - this.hid.get(t.ca)!.lastHoldersAt > 10 * MIN;
     const due = this.tokens
-      .filter((t) => (t.deathScore >= 35 || t.takeoverAt) && now - this.hid.get(t.ca)!.lastHoldersAt > 10 * MIN)
+      .filter((t) => stale(t) && t.mcap > 0)
+      .sort((a, b) => Number(!!b.takeoverAt) - Number(!!a.takeoverAt) || Number(b.deathScore >= 25 || b.devSoldPct > 0) - Number(a.deathScore >= 25 || a.devSoldPct > 0) || b.deathScore - a.deathScore)
       .slice(0, 20);
     for (const t of due) {
       try {
