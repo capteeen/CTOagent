@@ -25,5 +25,5 @@ COPY --from=build /app/package.json ./package.json
 # (see DEPLOY.md). Runs as root so the mounted volume is writable.
 RUN mkdir -p /app/data
 EXPOSE 3000
-HEALTHCHECK --interval=30s --timeout=5s --start-period=40s CMD wget -qO- http://127.0.0.1:3000/api/snapshot >/dev/null || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s CMD wget -qO- "http://127.0.0.1:${PORT:-3000}/api/snapshot" >/dev/null || exit 1
 CMD ["npm", "start"]
