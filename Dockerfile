@@ -21,9 +21,9 @@ COPY --from=build /app/public ./public
 COPY --from=build /app/.next ./.next
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./package.json
-RUN mkdir -p /app/data && chown -R node:node /app
-USER node
-VOLUME /app/data
+# No VOLUME here: Railway rejects it. Mount a platform volume at /app/data
+# (see DEPLOY.md). Runs as root so the mounted volume is writable.
+RUN mkdir -p /app/data
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s CMD wget -qO- http://127.0.0.1:3000/api/snapshot >/dev/null || exit 1
 CMD ["npm", "start"]
