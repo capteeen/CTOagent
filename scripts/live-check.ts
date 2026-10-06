@@ -50,6 +50,11 @@ const emit = (m: unknown) => sock.onmessage?.({ data: JSON.stringify(m) });
   await w.discover();
   console.log('tracked after discover:', w.tokens.map((t) => `${t.ticker} ${t.mcap}`));
   console.assert(w.tokens.length === 1 && w.tokens[0].ticker === 'BOOST', 'discovery picks solana profiles only');
+  const pickup = w.actionsByCa[B][0];
+  console.log('pickup action:', pickup.ticker, '|', pickup.reason);
+  console.assert(pickup.ticker === 'BOOST' && pickup.reason.includes('$BOOST'), 'placeholder ticker rewritten');
+  // h1 spike must not inflate the volume peak: 40k/24h with a 2k hour would have been a 48k "peak"
+  console.assert(w.tokens[0].volPeak === 500_000, 'volPeak = observed h24 only');
   console.assert(sock.sent.some((s) => s.includes('subscribeNewToken')), 'subscribes to launches');
 
   // a pump.fun launch arrives

@@ -306,7 +306,7 @@ export class LiveWorld {
     if (this.tokens.length <= max) return;
     const now = this.now();
     const victims = this.tokens
-      .filter((t) => t.status === 'scanning' && !this.watchlist.includes(t.ca) && now - this.hid.get(t.ca)!.firstSeen > 30 * MIN)
+      .filter((t) => t.status === 'scanning' && !t.takeoverAt && !this.watchlist.includes(t.ca) && now - this.hid.get(t.ca)!.firstSeen > 30 * MIN)
       .sort((a, b) => a.vol24h - b.vol24h)
       .slice(0, this.tokens.length - max);
     for (const t of victims) {
@@ -327,6 +327,10 @@ export class LiveWorld {
     if (this.byCa.has(m.mint)) return;
     // keep room: only take launches while under the cap
     if (this.tokens.length >= this.opts.maxTokens) return;
+    // Launches arrive ~1/s; without a cap they fill every slot within minutes.
+    let fromFeed = 0;
+    for (const h of this.hid.values()) if (h.source === 'pumpportal') fromFeed++;
+    if (fromFeed >= this.opts.maxTokens * 0.5) return;
     const t = this.addToken(m.mint, { name: m.name, ticker: m.symbol, image: '', devWallet: m.traderPublicKey, source: 'pumpportal', devBought: m.initialBuy ?? 0 });
     t.launchedAt = at;
     const hd = this.hid.get(m.mint)!;
@@ -394,7 +398,17 @@ export class LiveWorld {
     if (!hd.seenPairs) {
       hd.seenPairs = true;
       if (p.baseToken.name) t.name = p.baseToken.name;
-      if (p.baseToken.symbol) t.ticker = p.baseToken.symbol.replace(/^\$/, '').slice(0, 12);
+      if (p.baseToken.symbol) {
+        const old = t.ticker;
+        t.ticker = p.baseToken.symbol.replace(/^\$/, '').slice(0, 12);
+        // actions logged before we knew the symbol carry the CA-prefix placeholder
+        if (old !== t.ticker) {
+          for (const act of this.actionsByCa[t.ca] ?? []) {
+            act.ticker = t.ticker;
+            act.reason = act.reason.split(`$${old}`).join(`$${t.ticker}`);
+          }
+        }
+      }
       if (p.pairCreatedAt) t.launchedAt = Math.min(t.launchedAt, p.pairCreatedAt);
       if (hd.lastTradeAt === hd.firstSeen) hd.lastTradeAt = t.launchedAt;
     }
@@ -410,7 +424,10 @@ export class LiveWorld {
     const v = p.volume ?? {};
     t.vol24h = v.h24 ?? t.vol24h;
     // peak = best 24h pace we have seen (24h window, or recent windows annualised to 24h)
-    t.volPeak = Math.max(t.volPeak, v.h24 ?? 0, (v.h6 ?? 0) * 4, (v.h1 ?? 0) * 24);
+    // Peak = highest 24h volume actually observed. Extrapolating h1×24 or h6×4
+    // inflated the peak on any coin with one busy hour and made every coin
+    // look "down 90%", so the volume signal fired on everything.
+    t.volPeak = Math.max(t.volPeak, v.h24 ?? 0);
     const tx = p.txns;
     if (tx) {
       const sum = (k: 'm5' | 'h1' | 'h6' | 'h24') => (tx[k]?.buys ?? 0) + (tx[k]?.sells ?? 0);
@@ -484,7 +501,7 @@ export class LiveWorld {
         case 'scanning':
           if (t.deathScore >= 40) {
             t.status = 'dying';
-            this.act(t, 'flag', `Score ${t.deathScore}: dev sold ${t.devSoldPct.toFixed(0)}%, no trades for ${t.hoursSilent.toFixed(1)}h, vol -${parts.volDropPct.toFixed(0)}% from peak pace. Watching.`, { tags: ['score', 'dev', 'social', 'volume'] });
+            this.act(t, 'flag', `Score ${t.deathScore}: dev sold ${t.devSoldPct.toFixed(0)}%, no trades for ${t.hoursSilent.toFixed(1)}h, vol -${parts.volDropPct.toFixed(0)}% from peak. Watching.`, { tags: ['score', 'dev', 'social', 'volume'] });
           }
           break;
         case 'dying':
