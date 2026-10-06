@@ -9,6 +9,7 @@ import { usd } from '@/lib/format';
 import { ActionFeed } from '@/components/ActionFeed';
 import { CopyText, Skeleton, useTween } from '@/components/ui';
 import { HQ } from '@/components/hq/HQ';
+import { Crew } from '@/components/home/Crew';
 
 function Big({ label, value, fmt, cls = '', sub }: { label: string; value: number; fmt: (n: number) => string; cls?: string; sub?: string }) {
   const v = useTween(value);
@@ -70,6 +71,9 @@ export default function AgentPage() {
       </div>
 
       <HQ className="mt-4 h-[300px] md:h-[380px]" />
+
+      <h2 className="mt-6 text-[16px] font-bold">The crew</h2>
+      <div className="mt-2"><Crew /></div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <section className="card">

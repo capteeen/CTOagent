@@ -27,6 +27,8 @@ export interface AgentProps {
   labelY?: number;
   /** screen-space nudge in px so neighbouring labels don't collide */
   labelOffset?: [number, number];
+  glasses?: boolean;
+  beard?: boolean;
 }
 
 function Box({ p, s, c, e }: { p: [number, number, number]; s: [number, number, number]; c: string; e?: number }) {
@@ -39,7 +41,7 @@ function Box({ p, s, c, e }: { p: [number, number, number]; s: [number, number, 
 }
 
 /** A procedural voxel worker. Built from boxes so there are no assets to load. */
-export function Agent({ position, rotation = 0, color, skin, hat, pal, title, line, lineKey, pose, tone = 'fg', speed = 1, onClick, icon, labelY = 2.05, labelOffset = [0, 0] }: AgentProps) {
+export function Agent({ position, rotation = 0, color, skin, hat, pal, title, line, lineKey, pose, tone = 'fg', speed = 1, onClick, icon, labelY = 2.05, labelOffset = [0, 0], glasses, beard }: AgentProps) {
   const root = useRef<Group>(null);
   const body = useRef<Group>(null);
   const head = useRef<Group>(null);
@@ -108,6 +110,16 @@ export function Agent({ position, rotation = 0, color, skin, hat, pal, title, li
           <Box p={[-0.1, 0.04, 0.23]} s={[0.07, 0.09, 0.02]} c={pal.fg} />
           <Box p={[0.1, 0.04, 0.23]} s={[0.07, 0.09, 0.02]} c={pal.fg} />
           <Box p={[0, -0.12, 0.23]} s={[0.14, 0.03, 0.02]} c={pal.dark ? '#5a3a30' : '#9a5a4a'} />
+          {glasses && (
+            <>
+              <Box p={[-0.1, 0.04, 0.24]} s={[0.15, 0.14, 0.015]} c={pal.fg} />
+              <Box p={[0.1, 0.04, 0.24]} s={[0.15, 0.14, 0.015]} c={pal.fg} />
+              <Box p={[-0.1, 0.04, 0.245]} s={[0.1, 0.09, 0.01]} c={skin} />
+              <Box p={[0.1, 0.04, 0.245]} s={[0.1, 0.09, 0.01]} c={skin} />
+              <Box p={[0, 0.04, 0.24]} s={[0.06, 0.02, 0.015]} c={pal.fg} />
+            </>
+          )}
+          {beard && <Box p={[0, -0.17, 0.2]} s={[0.36, 0.14, 0.1]} c="#3a2a1a" />}
           {/* hard hat */}
           <Box p={[0, 0.3, 0]} s={[0.52, 0.2, 0.5]} c={hat} />
           <Box p={[0, 0.42, 0]} s={[0.34, 0.1, 0.34]} c={hat} />

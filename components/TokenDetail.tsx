@@ -11,6 +11,8 @@ import { SUPPLY } from '@/lib/sim';
 import { ActionFeed } from './ActionFeed';
 import { CoinAvatar, CopyText, DeathBar, ProofLink, Skeleton, StatusBadge, Tick } from './ui';
 
+const CoinStage = dynamic(() => import('./hq/CoinStage').then((m) => m.CoinStage), { ssr: false });
+
 const TokenChart = dynamic(() => import('./TokenChart').then((m) => m.TokenChart), {
   ssr: false,
   loading: () => <div className="h-[360px] animate-pulse bg-surface md:h-[420px]" />,
@@ -117,13 +119,19 @@ export function TokenDetail({ ca }: { ca: string }) {
         <Metric t={t} label="Takeover" value={t.takeoverAt ?? 0}>{t.takeoverAt ? <span className="font-mono text-[13px]">{stamp(t.takeoverAt)}</span> : <span className="text-muted">—</span>}</Metric>
       </div>
 
-      {/* chart */}
-      <div className="card mt-4 overflow-hidden">
+      {/* 3D stage + chart */}
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[360px_1fr]">
+        <div className="card relative hidden overflow-hidden lg:block">
+          <div className="absolute left-3 top-2 z-10 label">The coin · hover the tower</div>
+          <CoinStage ca={t.ca} className="h-full min-h-[420px]" />
+        </div>
+      <div className="card overflow-hidden">
         <div className="flex items-center justify-between border-b border-line px-3 py-2">
           <span className="label">Market cap · {t.takeoverAt ? 'blue line marks the takeover' : 'no takeover yet'}</span>
           <span className="font-mono text-[11px] text-muted">reconstructed candles (sim)</span>
         </div>
         <TokenChart token={t} actions={actions ?? []} now={now} />
+      </div>
       </div>
 
       {/* panels */}

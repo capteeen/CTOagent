@@ -59,6 +59,27 @@ load; the scene follows the CSS color tokens so it matches light and dark mode.
 It is shown on `/` and `/agent`, lazy-loaded client-side, and skipped entirely
 when WebGL is unavailable.
 
+## The crew and the 3D pieces
+
+`lib/characters.ts` defines five named agents, one per job: **Hawk** (scanner),
+**Brick** (trader), **Quill** (poster), **Hana** (community) and **Vault**
+(treasurer). The same look drives the pixel avatar (`components/Avatar.tsx`,
+used in every feed row, card and toast) and the voxel character in the 3D
+office, so a face always means the same kind of action.
+
+3D / interactive pieces (`components/hq/`, `components/home/`):
+
+- **HQ office** (`/`, `/agent`): the crew at their desks with live labels; click
+  an agent to open its log panel.
+- **Coin stage** (`/token/[ca]`): the coin spinning on a plinth, death score as
+  a brick tower with the 70 line marked (hover for the breakdown), the agent
+  on guard when taken over, a tombstone when dead.
+- **Graveyard** (`/`): dead coins as stones, takeovers as flagged bricks,
+  revived ones as plants; hover for numbers, click to open.
+- **Hawk's phone** (`/`): CSS-3D phone with the newest launches; drag to turn.
+- **Toasts**: takeover / sell / abandon / claim pop in as they happen.
+- **Leaderboard** (`/leaderboard`): every takeover ranked by PnL, ROI, vol Δ, fees.
+
 ## Layout of the code
 
 ```

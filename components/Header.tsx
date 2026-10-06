@@ -18,11 +18,8 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur">
       <div className="flex h-14 items-center gap-3 px-3 md:px-5">
         <Link href="/" className="flex items-center gap-2.5">
-          <span className="relative grid h-8 w-8 place-items-center rounded-lg bg-accent font-mono text-[11px] font-black text-onaccent shadow-[0_3px_0_0_rgb(var(--accent)/0.45)]">
-            CTO
-            <span className="absolute -top-1 left-1.5 h-1.5 w-1.5 rounded-sm bg-accent" />
-            <span className="absolute -top-1 right-1.5 h-1.5 w-1.5 rounded-sm bg-accent" />
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/logo-96.png" alt="CTO" width={36} height={36} className="h-9 w-9 rounded-lg shadow-[0_3px_0_0_rgb(var(--accent)/0.45)]" />
           <span className="text-[18px] font-black tracking-tight">
             CT<span className="text-accent">O</span>
           </span>

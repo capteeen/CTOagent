@@ -101,3 +101,9 @@ h1, h2, h3 { letter-spacing: -0.025em; }
 .hq-label-line { font-variant-numeric: tabular-nums; }
 @keyframes hqpop { from { transform: translateY(-6px); opacity: 0; } }
 @media (max-width: 640px) { .hq-label { font-size: 10px; padding: 3px 6px; } .hq-label-title { display: none; } }
+
+/* tilt cards */
+.tilt { transition: transform 160ms ease-out, box-shadow 160ms ease-out; transform-style: preserve-3d; will-change: transform; position: relative; }
+.tilt:hover { box-shadow: 0 12px 30px -14px rgb(0 0 0 / 0.6); z-index: 1; }
+.tilt::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 160ms; background: radial-gradient(240px circle at var(--gx, 50%) var(--gy, 50%), rgb(var(--accent) / 0.12), transparent 60%); }
+.tilt:hover::after { opacity: 1; }

@@ -13,6 +13,7 @@ const I = {
   activity: <path d="M3 12h4l3-8 4 16 3-8h4" />,
   agent: <><rect x="4" y="7" width="16" height="12" rx="2" /><path d="M9 12h.01M15 12h.01M12 3v4M8 19v2M16 19v2" /></>,
   holders: <><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></>,
+  board: <><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></>,
   how: <><circle cx="12" cy="12" r="9" /><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.7M12 17h.01" /></>,
 };
 
@@ -21,6 +22,7 @@ export const NAV: { href: string; label: string; icon: keyof typeof I; match?: (
   { href: '/tokens', label: 'Tokens', icon: 'tokens', match: (p) => p.startsWith('/token') },
   { href: '/activity', label: 'Activity', icon: 'activity' },
   { href: '/agent', label: 'Agent', icon: 'agent' },
+  { href: '/leaderboard', label: 'Leaderboard', icon: 'board' },
   { href: '/holders', label: 'Holders', icon: 'holders' },
   { href: '/how', label: 'How it works', icon: 'how' },
 ];

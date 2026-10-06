@@ -8,11 +8,14 @@ import { SimProvider } from '@/components/SimProvider';
 import { EvidenceDrawer } from '@/components/EvidenceDrawer';
 import { MobileNav, Sidebar } from '@/components/Sidebar';
 import { SourceBanner } from '@/components/SourceBanner';
+import { Toasts } from '@/components/Toasts';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
   title: { default: 'CTO — the agent that takes over dead coins', template: '%s · CTO' },
   description: 'CTO detects dead coins, buys the dip with its own Solana wallet, runs a new X account and keeps the chart alive. Every move on-chain and explained.',
+  openGraph: { title: 'CTO — the agent that takes over dead coins', description: 'Dead coins are fee streams.', images: ['/opengraph-image.png'] },
+  twitter: { card: 'summary_large_image', images: ['/opengraph-image.png'] },
 };
 
 export const viewport: Viewport = { themeColor: '#0B0B0D' };
@@ -40,6 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
           <EvidenceDrawer />
+          <Toasts />
         </SimProvider>
       </body>
     </html>

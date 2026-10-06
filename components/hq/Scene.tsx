@@ -10,7 +10,8 @@ import type { Action } from '@/lib/types';
 import { ago } from '@/lib/format';
 import { Agent, type AgentProps } from './Agent';
 import { Brick, Crane, Desk, Plant, Plate, Sign } from './Props';
-import { readPalette, SKIN, type Palette } from './palette';
+import { readPalette, type Palette } from './palette';
+import { BY_ROLE } from '@/lib/characters';
 
 type Slot = Pick<AgentProps, 'title' | 'line' | 'lineKey' | 'tone' | 'icon'> & { href: string };
 
@@ -32,27 +33,27 @@ function useDesks(): Record<'scanner' | 'trader' | 'poster' | 'community' | 'tre
       : 'Waiting for an eligible coin';
     return {
       scanner: {
-        title: 'Scanner', icon: '⌕', href: '/tokens?tab=watching',
+        title: BY_ROLE.scanner.name, icon: BY_ROLE.scanner.icon, href: BY_ROLE.scanner.href,
         line: flag ? `$${flag.ticker} flagged · ${dying} dying` : `Scanning ${snap?.stats.scanned.toLocaleString('en-US') ?? ''} coins`,
         lineKey: flag?.id ?? 'scan', tone: 'loss',
       },
       trader: {
-        title: 'Trader', icon: '⇅', href: '/agent',
+        title: BY_ROLE.trader.name, icon: BY_ROLE.trader.icon, href: BY_ROLE.trader.href,
         line: tradeLine, lineKey: trade?.id ?? 'trade',
         tone: trade?.kind === 'sell' ? 'gain' : trade?.kind === 'abandon' ? 'fg' : 'accent',
       },
       poster: {
-        title: 'Poster', icon: '✎', href: '/activity',
+        title: BY_ROLE.poster.name, icon: BY_ROLE.poster.icon, href: BY_ROLE.poster.href,
         line: post ? `@${post.ticker.slice(0, 12)}CTO · ${ago(post.at, now)} ago` : 'Drafting the next update',
         lineKey: post?.id ?? 'post', tone: 'fg',
       },
       community: {
-        title: 'Community', icon: '↩', href: '/activity',
+        title: BY_ROLE.community.name, icon: BY_ROLE.community.icon, href: BY_ROLE.community.href,
         line: reply ? `Reply on $${reply.ticker} · ${ago(reply.at, now)} ago` : 'Reading mentions',
         lineKey: reply?.id ?? 'reply', tone: 'fg',
       },
       treasurer: {
-        title: 'Treasurer', icon: '◎', href: '/holders',
+        title: BY_ROLE.treasurer.name, icon: BY_ROLE.treasurer.icon, href: BY_ROLE.treasurer.href,
         line: claim ? `+${(claim.amount ?? 0).toFixed(3)} SOL · vault ${snap?.agent.vaultSol.toFixed(1)}` : `Vault ${snap?.agent.vaultSol.toFixed(1) ?? '—'} SOL`,
         lineKey: claim?.id ?? 'claim', tone: 'gain',
       },
@@ -70,18 +71,20 @@ function Fit() {
   return null;
 }
 
-function Office({ pal }: { pal: Palette }) {
+export type Role = 'scanner' | 'trader' | 'poster' | 'community' | 'treasurer';
+
+function Office({ pal, onSelect }: { pal: Palette; onSelect?: (r: Role) => void }) {
   const router = useRouter();
   const d = useDesks();
   const { size } = useThree();
   // labels are nudged apart in screen space; pull them in on narrow canvases
   const k = Math.max(0.3, Math.min(1, size.width / 760));
   const off = (x: number, y: number): [number, number] => [size.width < 560 ? 0 : x * k, y * k];
-  const go = (href: string) => () => router.push(href);
+  const go = (role: Role) => () => (onSelect ? onSelect(role) : router.push(d[role].href));
   const wall = pal.dark ? '#26262b' : '#f1f1f3';
   const floor = pal.dark ? '#1c1c20' : '#ffffff';
   const floor2 = pal.dark ? '#232328' : '#f7f7f8';
-  const shirt = pal.dark ? '#34343b' : '#2a2a33';
+  const look = (r: keyof typeof BY_ROLE) => { const c = BY_ROLE[r]; return { color: c.shirt, skin: c.skin, hat: c.hat, glasses: c.glasses, beard: c.beard }; };
 
   return (
     <group position={[0, -1.1, 0]}>
@@ -102,18 +105,18 @@ function Office({ pal }: { pal: Palette }) {
 
       {/* desks + agents */}
       <Desk position={[-4.6, 0.2, -3.2]} pal={pal} screen="scan" screenColor={pal.loss} />
-      <Agent position={[-4.6, 0.2, -2.3]} labelY={2.1} labelOffset={off(-40, -26)} pal={pal} color={shirt} skin={SKIN[0]} hat={pal.loss} pose="type" onClick={go(d.scanner.href)} {...d.scanner} />
+      <Agent position={[-4.6, 0.2, -2.3]} labelY={2.1} labelOffset={off(-40, -26)} pal={pal} {...look('scanner')} pose="type" onClick={go('scanner')} {...d.scanner} />
 
       <Desk position={[-0.6, 0.2, -3.2]} pal={pal} screen="chart" screenColor={pal.accent} />
-      <Agent position={[-0.6, 0.2, -2.3]} labelY={2.6} labelOffset={off(70, -50)} pal={pal} color={pal.accent} skin={SKIN[2]} hat={pal.accent} pose="type" speed={1.3} onClick={go(d.trader.href)} {...d.trader} />
+      <Agent position={[-0.6, 0.2, -2.3]} labelY={2.6} labelOffset={off(70, -50)} pal={pal} {...look('trader')} pose="type" speed={1.3} onClick={go('trader')} {...d.trader} />
 
       <Desk position={[3.6, 0.2, -3.2]} pal={pal} screen="x" screenColor={pal.fg} />
-      <Agent position={[3.6, 0.2, -2.3]} labelY={2.1} labelOffset={off(90, 0)} pal={pal} color={shirt} skin={SKIN[4]} hat={pal.fg} pose="type" speed={0.8} onClick={go(d.poster.href)} {...d.poster} />
+      <Agent position={[3.6, 0.2, -2.3]} labelY={2.1} labelOffset={off(90, 0)} pal={pal} {...look('poster')} pose="type" speed={0.8} onClick={go('poster')} {...d.poster} />
 
-      <Agent position={[-3.8, 0.2, 1.8]} rotation={0.9} labelY={2.1} labelOffset={off(-80, 10)} pal={pal} color={pal.gain} skin={SKIN[1]} hat={pal.gain} pose="phone" onClick={go(d.community.href)} {...d.community} />
+      <Agent position={[-3.8, 0.2, 1.8]} rotation={0.9} labelY={2.1} labelOffset={off(-80, 10)} pal={pal} {...look('community')} pose="phone" onClick={go('community')} {...d.community} />
 
       <Desk position={[2.4, 0, 1.6]} rotation={Math.PI} pal={pal} screen="wallet" screenColor={pal.gain} />
-      <Agent position={[2.4, 0, 0.7]} rotation={Math.PI} labelY={2.3} labelOffset={off(40, 40)} pal={pal} color={shirt} skin={SKIN[3]} hat={pal.accent} pose="type" speed={1.1} onClick={go(d.treasurer.href)} {...d.treasurer} />
+      <Agent position={[2.4, 0, 0.7]} rotation={Math.PI} labelY={2.3} labelOffset={off(40, 40)} pal={pal} {...look('treasurer')} pose="type" speed={1.1} onClick={go('treasurer')} {...d.treasurer} />
 
       {/* dressing */}
       <Plant position={[-6.0, 0, -4.4]} pal={pal} />
@@ -130,7 +133,7 @@ function Office({ pal }: { pal: Palette }) {
   );
 }
 
-export function Scene({ className = '' }: { className?: string }) {
+export function Scene({ className = '', onSelect }: { className?: string; onSelect?: (r: Role) => void }) {
   const [pal, setPal] = useState<Palette>(() => readPalette());
   useEffect(() => {
     setPal(readPalette());
@@ -156,7 +159,7 @@ export function Scene({ className = '' }: { className?: string }) {
           <orthographicCamera attach="shadow-camera" args={[-14, 14, 14, -14, 0.1, 50]} />
         </directionalLight>
         <directionalLight position={[-6, 6, -4]} intensity={0.35} />
-        <Office pal={pal} />
+        <Office pal={pal} onSelect={onSelect} />
         <OrbitControls
           enableZoom={false}
           enablePan={false}
@@ -169,7 +172,7 @@ export function Scene({ className = '' }: { className?: string }) {
           target={[-0.4, 0.6, -0.6]}
         />
       </Canvas>
-      <div className="pointer-events-none absolute bottom-2 left-3 font-mono text-[10px] text-muted">drag to look around · click an agent</div>
+      <div className="pointer-events-none absolute bottom-2 left-3 font-mono text-[10px] text-muted">drag to look around · click an agent for its log</div>
     </div>
   );
 }
