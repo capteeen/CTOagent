@@ -18,7 +18,12 @@ export function getLiveWorld(): LiveWorld {
       paperVaultSol: Number(process.env.LIVE_PAPER_VAULT_SOL ?? 10),
       relaxHolders: process.env.LIVE_RELAX_HOLDERS === '1',
       maxTokens: Number(process.env.LIVE_MAX_TOKENS ?? 300),
+      stateFile: process.env.LIVE_STATE_FILE ?? 'data/live-state.json',
     });
+    // flush on shutdown so a deploy/restart keeps the paper track record
+    const flush = () => g.__ctoLive?.save();
+    process.once('SIGTERM', flush);
+    process.once('SIGINT', flush);
   }
   return g.__ctoLive;
 }

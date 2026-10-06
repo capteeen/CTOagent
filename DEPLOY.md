@@ -51,5 +51,9 @@ HELIUS_API_KEY=... PORT=3000 npm start     # under pm2 / systemd
 
 - `GET /api/snapshot` → `tracked` grows past 0 within a minute, `errors: []`.
 - The site header shows **MAINNET · LIVE** and the banner lists caveats.
-- Restarts lose in-memory state (paper positions, action history). That is
-  acceptable while trading is on paper; persistence comes with real trading.
+- State (tracked coins, paper positions, action history, vault) is saved to
+  `data/live-state.json` every 30s and on shutdown, and restored on boot. Give
+  the container a **persistent volume at `/app/data`** (Railway: Volumes →
+  mount path `/app/data`; Fly: `fly volumes create data` + a `[mounts]` entry;
+  VPS: add `-v cto-data:/app/data` to `docker run`). Without a volume a
+  redeploy starts from scratch.

@@ -30,7 +30,7 @@ curl localhost:3000/api/snapshot | head -c 500   # live world state
 Live mode needs a long-lived Node process (`next start`, Docker, a VPS): the
 world lives in memory and keeps a websocket open. On serverless hosts run the
 world elsewhere and point `NEXT_PUBLIC_FEED_URL` at it. State is not persisted
-across restarts yet.
+across restarts via `LIVE_STATE_FILE` (see DEPLOY.md for volumes).
 
 Node 18.18+ (tested on 22). `.npmrc` sets `legacy-peer-deps` so the Solana
 wallet adapter does not drag in React Native.
@@ -225,6 +225,7 @@ interface DataSource {
 | `LIVE_PAPER_VAULT_SOL` | `10` | paper vault size |
 | `LIVE_RELAX_HOLDERS` | — | `1` lets takeovers proceed without holder counts |
 | `LIVE_MAX_TOKENS` | `300` | cap on tracked tokens |
+| `LIVE_STATE_FILE` | `data/live-state.json` | JSON state saved every 30s and restored on boot; `''` disables |
 | `NEXT_PUBLIC_RPC_URL` | mainnet-beta | Wallet adapter connection |
 | `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` | Absolute URLs for OG images |
 

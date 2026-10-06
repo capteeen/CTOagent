@@ -54,6 +54,19 @@ export interface LiveOptions {
   now?: () => number;
   /** disable timers (tests drive the world manually) */
   manual?: boolean;
+  /** path of the JSON state file; '' disables persistence */
+  stateFile?: string;
+}
+
+/** What survives a restart. Hidden per-token state rides along with the token. */
+export interface PersistedState {
+  v: 1;
+  savedAt: number;
+  seq: number;
+  tokens: (Token & { _h: Hidden })[];
+  actions: Action[];
+  agent: Agent;
+  stats: Stats;
 }
 
 export class LiveWorld {
@@ -75,6 +88,9 @@ export class LiveWorld {
   private opts: Required<Pick<LiveOptions, 'paperVaultSol' | 'relaxHolders' | 'maxTokens'>>;
   private watchlist: string[];
   started = false;
+  private stateFile: string;
+  private dirty = false;
+  lastSavedAt = 0;
   updatedAt = 0;
   ppStatus: 'open' | 'closed' | 'error' = 'closed';
 
@@ -82,6 +98,7 @@ export class LiveWorld {
     this.now = o.now ?? (() => Date.now());
     this.opts = { paperVaultSol: o.paperVaultSol ?? 10, relaxHolders: o.relaxHolders ?? false, maxTokens: o.maxTokens ?? 300 };
     this.watchlist = o.watchlist ?? [];
+    this.stateFile = o.stateFile ?? '';
     this.ds = new DexScreener(o.fetchFn);
     this.helius = o.heliusKey ? new Helius(o.heliusKey, o.fetchFn) : null;
     this.pp = new PumpPortal(
@@ -115,6 +132,14 @@ export class LiveWorld {
   start() {
     if (this.started) return;
     this.started = true;
+    if (this.stateFile) {
+      try {
+        this.restore();
+      } catch (e) {
+        this.errors.set('state:restore', String((e as Error).message ?? e));
+      }
+      this.timers.push(setInterval(() => this.save(), 30_000));
+    }
     this.pp.start();
     void this.discover();
     this.timers.push(setInterval(() => void this.discover(), 90_000));
@@ -128,6 +153,72 @@ export class LiveWorld {
     this.timers = [];
     this.pp.stop();
     this.started = false;
+    this.save();
+  }
+
+  // ---------------------------------------------------------------- persistence
+
+  toState(): PersistedState {
+    return {
+      v: 1,
+      savedAt: this.now(),
+      seq: this.seq,
+      tokens: this.tokens.map((t) => ({ ...t, _h: this.hid.get(t.ca)! })),
+      actions: this.actions,
+      agent: this.agent,
+      stats: this.stats,
+    };
+  }
+
+  loadState(st: PersistedState) {
+    if (st.v !== 1) throw new Error(`unknown state version ${st.v}`);
+    this.tokens = [];
+    this.byCa.clear();
+    this.hid.clear();
+    this.actionsByCa = {};
+    for (const raw of st.tokens) {
+      const { _h, ...t } = raw;
+      this.tokens.push(t);
+      this.byCa.set(t.ca, t);
+      this.hid.set(t.ca, { ..._h, takeoverDueAt: undefined });
+      this.actionsByCa[t.ca] = [];
+    }
+    this.actions = st.actions.slice().sort((a, b) => b.at - a.at);
+    for (const a of this.actions) if (this.actionsByCa[a.ca]) this.actionsByCa[a.ca].push(a);
+    for (const t of this.tokens) if (!t.lastAction) t.lastAction = this.actionsByCa[t.ca][0];
+    this.agent = { ...st.agent, rules: { ...DEFAULT_RULES, ...st.agent.rules } };
+    this.stats = st.stats;
+    this.seq = Math.max(this.seq, st.seq);
+    // resubscribe the live feeds for everything we were following
+    this.pp.watchTokens(this.tokens.map((t) => t.ca));
+    this.pp.watchAccounts(this.tokens.map((t) => t.devWallet).filter(Boolean));
+  }
+
+  /** Atomic write: tmp file + rename, so a crash mid-write can't corrupt the state. */
+  save() {
+    if (!this.stateFile) return;
+    try {
+      const fs = require('node:fs') as typeof import('node:fs');
+      const path = require('node:path') as typeof import('node:path');
+      fs.mkdirSync(path.dirname(this.stateFile), { recursive: true });
+      const tmp = `${this.stateFile}.tmp`;
+      fs.writeFileSync(tmp, JSON.stringify(this.toState()));
+      fs.renameSync(tmp, this.stateFile);
+      this.lastSavedAt = this.now();
+      this.errors.delete('state:save');
+    } catch (e) {
+      this.errors.set('state:save', String((e as Error).message ?? e));
+    }
+  }
+
+  restore() {
+    if (!this.stateFile) return false;
+    const fs = require('node:fs') as typeof import('node:fs');
+    if (!fs.existsSync(this.stateFile)) return false;
+    const st = JSON.parse(fs.readFileSync(this.stateFile, 'utf8')) as PersistedState;
+    this.loadState(st);
+    this.errors.delete('state:restore');
+    return true;
   }
 
   // ---------------------------------------------------------------- discovery
@@ -546,6 +637,7 @@ export class LiveWorld {
       'Agent trades are PAPER until a funded keypair is configured. No X posts are made.',
       '"Silent" = hours since the last on-chain trade (no social data source yet).',
       this.helius ? 'Holder counts via Helius.' : 'Holder counts unavailable (set HELIUS_API_KEY). Holder signal counts 0.',
+      this.stateFile ? `State persisted to disk every 30s (last ${this.lastSavedAt ? new Date(this.lastSavedAt).toISOString() : 'never'}).` : 'State is in memory only; a restart clears positions and history.',
     ];
     const actionsByCa: Record<string, Action[]> = {};
     for (const ca in this.actionsByCa) actionsByCa[ca] = this.actionsByCa[ca];

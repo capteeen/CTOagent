@@ -88,6 +88,17 @@ const emit = (m: unknown) => sock.onmessage?.({ data: JSON.stringify(m) });
   console.log('moon:', t.status, t.lastAction.kind, t.lastAction.reason, '| pnl', t.position.pnl.toFixed(3));
   console.assert(t.status === 'revived', 'revived at 3x');
 
+  // persistence round-trip: a fresh world restored from this one's state sees the same coins and positions
+  const st = JSON.parse(JSON.stringify(w.toState()));
+  const w2 = new LiveWorld({ fetchFn: fakeFetch, socketFactory: factory, now: clock, manual: true, relaxHolders: true });
+  w2.loadState(st);
+  const t2 = w2.tokens.find((x) => x.ca === MINT)!;
+  console.log('restored:', w2.tokens.length, 'tokens', w2.actions.length, 'actions', t2.status, 'pnl', t2.position.pnl.toFixed(3), 'vault', w2.agent.vaultSol.toFixed(3), '| last:', t2.lastAction.kind);
+  console.assert(w2.tokens.length === w.tokens.length && t2.status === 'revived' && w2.agent.vaultSol === w.agent.vaultSol, 'restore round-trip');
+  await new Promise((r) => setTimeout(r, 5));
+  console.assert(sock.sent.some((x) => x.includes('subscribeTokenTrade') && x.includes(MINT)), 'restore resubscribes');
+  w2.stop();
+
   const { snap } = w.snapshot();
   console.log('snapshot source:', snap.source.kind, snap.source.paper, snap.source.errors, '| tokens', snap.tokens.length, '| actions', snap.actions.length);
   console.log('fetch calls:', calls.length, '| posts:', Object.keys(snap.postsByCa).length);
