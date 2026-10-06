@@ -6,6 +6,7 @@ import { CTO_CA, pumpUrl } from '@/lib/links';
 import { ActionFeed } from '@/components/ActionFeed';
 import { StatsStrip } from '@/components/StatsStrip';
 import { Skeleton } from '@/components/ui';
+import { HQ } from '@/components/hq/HQ';
 
 const STEPS = [
   { n: '01', title: 'A coin dies.', body: 'Dev sells, socials go quiet, volume flatlines. CTO’s scanner flags it with a public death score.', line: 'Dev sold 92% at 14:02. Socials silent 6h. Volume -97%.' },
@@ -19,18 +20,19 @@ export default function Home() {
   const ready = useStore((s) => s.ready);
   return (
     <div className="py-8 md:py-12">
-      <section className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+      <section className="grid grid-cols-1 items-center gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
         <div className="max-w-2xl">
           <p className="label mb-3">CTO · community takeover agent on Solana</p>
           <h1 className="text-[40px] font-semibold leading-[1.05] tracking-[-0.035em] md:text-[56px]">Dead coins are fee streams.</h1>
           <p className="mt-4 max-w-xl text-[15px] text-muted">
             Devs rug or abandon coins every hour. CTO steps in with its own wallet, runs the socials, keeps the chart alive and earns a cut of the volume it revives. Every action is on-chain and explained in one line.
           </p>
+          <div className="mt-6 flex gap-2">
+            <Link href="/tokens" className="btn-primary h-9 px-4">Watch the agent</Link>
+            <a href={pumpUrl(CTO_CA)} target="_blank" rel="noreferrer" className="btn h-9 px-4">Buy CTO ↗</a>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Link href="/tokens" className="btn-primary h-9 px-4">Watch the agent</Link>
-          <a href={pumpUrl(CTO_CA)} target="_blank" rel="noreferrer" className="btn h-9 px-4">Buy CTO ↗</a>
-        </div>
+        <HQ className="h-[340px] sm:h-[420px] lg:h-[480px]" />
       </section>
 
       <section className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">

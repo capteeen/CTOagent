@@ -8,6 +8,7 @@ import { SCORE_WEIGHTS } from '@/lib/score';
 import { usd } from '@/lib/format';
 import { ActionFeed } from '@/components/ActionFeed';
 import { CopyText, Skeleton, useTween } from '@/components/ui';
+import { HQ } from '@/components/hq/HQ';
 
 function Big({ label, value, fmt, cls = '', sub }: { label: string; value: number; fmt: (n: number) => string; cls?: string; sub?: string }) {
   const v = useTween(value);
@@ -67,6 +68,8 @@ export default function AgentPage() {
         <Big label="Abandoned" value={agent.abandoned} fmt={(n) => Math.round(n).toString()} sub={`${agent.takeovers ? ((agent.abandoned / agent.takeovers) * 100).toFixed(0) : 0}% of takeovers`} />
         <Big label="Paid to holders" value={agent.feesPaidToHolders} fmt={(n) => `${n.toFixed(2)} SOL`} cls="text-gain" sub={`${agent.pendingToHolders.toFixed(3)} SOL pending`} />
       </div>
+
+      <HQ className="mt-4 h-[300px] md:h-[380px]" />
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <section className="card bg-bg">

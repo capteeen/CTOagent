@@ -31,11 +31,24 @@ wallet adapter does not drag in React Native.
 | `/how` | Death detection, takeover rules, fee flow, what the agent will never do |
 | `/activity` | Full-page feed with kind filters and text search |
 
+## The 3D HQ
+
+`components/hq/` renders an isometric voxel office with three.js
+(react-three-fiber + drei). Five agents sit at desks, each wired to the live
+feed: Scanner (last flag), Trader (last trade), Poster (last post), Community
+(last reply), Treasurer (last claim + vault). Labels update with the simulator,
+characters type / phone / wave, the crane swings, hover lifts an agent and a
+click jumps to the matching page. Everything is procedural boxes, so no assets
+load; the scene follows the CSS color tokens so it matches light and dark mode.
+It is shown on `/` and `/agent`, lazy-loaded client-side, and skipped entirely
+when WebGL is unavailable.
+
 ## Layout of the code
 
 ```
 app/                  Next.js 14 app router pages
 components/           UI (TokensTable, TokenChart, ActionFeed, EvidenceDrawer, …)
+components/hq/        3D voxel office (Scene, Agent, Props, palette)
 lib/types.ts          Data model (Token, Action, Agent, Rules, Stats, Post, Distribution, Snapshot)
 lib/score.ts          Death score + eligibility. Shared by the sim, the UI and (later) the server.
 lib/sim.ts            Phase 1 mock simulator (the World engine)
