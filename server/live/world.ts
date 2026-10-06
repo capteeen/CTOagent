@@ -151,13 +151,18 @@ export class LiveWorld {
     const fresh = [...found.entries()].filter(([ca]) => !this.byCa.has(ca));
     this.stats.scanned += found.size;
     for (const [ca, p] of fresh) {
-      this.addToken(ca, {
-        name: '',
-        ticker: '',
-        image: p?.icon ?? '',
-        devWallet: '',
-        source: this.watchlist.includes(ca) ? 'watchlist' : 'dexscreener',
-      });
+      // one bad token must not abort the whole discovery pass
+      try {
+        this.addToken(ca, {
+          name: '',
+          ticker: '',
+          image: p?.icon ?? '',
+          devWallet: '',
+          source: this.watchlist.includes(ca) ? 'watchlist' : 'dexscreener',
+        });
+      } catch (e) {
+        this.errors.set('world:addToken', String((e as Error).message ?? e));
+      }
     }
     if (fresh.length) await this.refresh(fresh.map(([ca]) => ca));
     this.evict();

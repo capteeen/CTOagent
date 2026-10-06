@@ -51,6 +51,7 @@ const URL = 'wss://pumpportal.fun/api/data';
 
 export class PumpPortal {
   private ws: SocketLike | null = null;
+  private open = false;
   private tokenSubs = new Set<string>();
   private accountSubs = new Set<string>();
   private stopped = false;
@@ -66,9 +67,24 @@ export class PumpPortal {
 
   stop() {
     this.stopped = true;
+    this.open = false;
     if (this.timer) clearTimeout(this.timer);
     this.ws?.close();
     this.ws = null;
+  }
+
+  /**
+   * Node's WebSocket throws on send before the connection is open (browsers
+   * queue instead). Subscriptions are kept in tokenSubs/accountSubs and
+   * replayed by onopen, so dropping a send while disconnected is safe.
+   */
+  private send(msg: unknown) {
+    if (!this.ws || !this.open) return;
+    try {
+      this.ws.send(JSON.stringify(msg));
+    } catch (e) {
+      this.events.onStatus?.('error', String((e as Error).message ?? e));
+    }
   }
 
   private connect() {
@@ -82,11 +98,12 @@ export class PumpPortal {
     }
     this.ws = ws;
     ws.onopen = () => {
+      this.open = true;
       this.backoff = 1000;
       this.events.onStatus?.('open');
-      ws.send(JSON.stringify({ method: 'subscribeNewToken' }));
-      if (this.tokenSubs.size) ws.send(JSON.stringify({ method: 'subscribeTokenTrade', keys: [...this.tokenSubs] }));
-      if (this.accountSubs.size) ws.send(JSON.stringify({ method: 'subscribeAccountTrade', keys: [...this.accountSubs] }));
+      this.send({ method: 'subscribeNewToken' });
+      if (this.tokenSubs.size) this.send({ method: 'subscribeTokenTrade', keys: [...this.tokenSubs] });
+      if (this.accountSubs.size) this.send({ method: 'subscribeAccountTrade', keys: [...this.accountSubs] });
     };
     ws.onmessage = (ev) => {
       let m: PpMessage;
@@ -102,6 +119,7 @@ export class PumpPortal {
     };
     ws.onerror = (e) => this.events.onStatus?.('error', (e as { message?: string })?.message ?? 'socket error');
     ws.onclose = () => {
+      this.open = false;
       this.events.onStatus?.('closed');
       this.ws = null;
       this.scheduleReconnect();
@@ -120,20 +138,20 @@ export class PumpPortal {
     const add = mints.filter((m) => !this.tokenSubs.has(m));
     if (!add.length) return;
     add.forEach((m) => this.tokenSubs.add(m));
-    this.ws?.send(JSON.stringify({ method: 'subscribeTokenTrade', keys: add }));
+    this.send({ method: 'subscribeTokenTrade', keys: add });
   }
 
   unwatchTokens(mints: string[]) {
     const rm = mints.filter((m) => this.tokenSubs.has(m));
     if (!rm.length) return;
     rm.forEach((m) => this.tokenSubs.delete(m));
-    this.ws?.send(JSON.stringify({ method: 'unsubscribeTokenTrade', keys: rm }));
+    this.send({ method: 'unsubscribeTokenTrade', keys: rm });
   }
 
   watchAccounts(wallets: string[]) {
     const add = wallets.filter((w) => !this.accountSubs.has(w));
     if (!add.length) return;
     add.forEach((w) => this.accountSubs.add(w));
-    this.ws?.send(JSON.stringify({ method: 'subscribeAccountTrade', keys: add }));
+    this.send({ method: 'subscribeAccountTrade', keys: add });
   }
 }
